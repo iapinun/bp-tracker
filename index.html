@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Blood Pressure Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ════ RESET ════ */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --blue:#1565C0;--blue2:#0D47A1;--bluebg:#E3F2FD;--bluebdr:#90CAF9;
+  --green:#2E7D32;--greenbg:#E8F5E9;
+  --amber:#E65100;--amberbg:#FFF3E0;
+  --red:#C62828;--redbg:#FFEBEE;
+  --indigo:#283593;--indigobg:#E8EAF6;
+  --gray:#546E7A;--bg:#ECEFF1;--border:#B0BEC5;--text:#212121;--sub:#546E7A;
+  --r:14px;--r2:10px;
+}
+html,body{
+  width:100%;height:100%;
+  font-family:'Sarabun',-apple-system,sans-serif;
+  font-size:16px;
+  background:var(--bg);color:var(--text);
+  overflow-x:hidden;
+  -webkit-text-size-adjust:100%;
+}
+#app{width:100%;max-width:600px;margin:0 auto;min-height:100vh;padding-bottom:2rem}
+
+/* ════ HEADER ════ */
+.hdr{background:var(--blue);color:#fff;padding:1rem 1.25rem .875rem}
+.hdr h1{font-size:1.25rem;font-weight:700}
+.hdr p{font-size:.75rem;opacity:.8;margin-top:.25rem}
+
+/* ════ TABS ════ */
+.tabs{display:flex;width:100%;background:#fff;border-bottom:2px solid var(--border);
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 4px rgba(0,0,0,.08)}
+.tab{flex:1;padding:.75rem .25rem .625rem;border:none;background:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:.2rem;
+  font-size:.75rem;font-weight:600;color:var(--gray);
+  border-bottom:3px solid transparent;margin-bottom:-2px;font-family:inherit}
+.tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+.tab svg{width:1.375rem;height:1.375rem;stroke-width:1.8}
+
+/* ════ PANES ════ */
+.pane{display:none;padding:1rem;width:100%}
+.pane.on{display:block}
+
+/* ════ CARD ════ */
+.card{background:#fff;border-radius:var(--r);padding:1.125rem;margin-bottom:.875rem;
+  box-shadow:0 1px 4px rgba(0,0,0,.09)}
+.ctitle{font-size:.875rem;font-weight:700;color:var(--sub);margin-bottom:.875rem;
+  display:flex;align-items:center;gap:.4rem}
+.ctitle svg{width:1rem;height:1rem;stroke-width:2;flex-shrink:0}
+
+/* ════ UPLOAD ════ */
+.upzone{border:2px dashed var(--bluebdr);border-radius:var(--r2);background:var(--bluebg);
+  padding:2rem 1rem;text-align:center;cursor:pointer;width:100%}
+.upzone:active{background:#BBDEFB}
+.upzone svg{width:2.5rem;height:2.5rem;stroke:var(--blue);margin-bottom:.625rem}
+.upzone .ut{font-size:1rem;font-weight:700;color:var(--blue);margin-bottom:.25rem}
+.upzone .us{font-size:.875rem;color:var(--sub)}
+
+/* ════ READING BOXES ════ */
+.rrow{display:grid;grid-template-columns:repeat(3,1fr);gap:.625rem;margin-bottom:.875rem}
+.rbox{border:2px solid var(--border);border-radius:var(--r2);padding:.875rem .25rem .75rem;text-align:center}
+.rbox .rlbl{font-size:.75rem;color:var(--sub);display:block;margin-bottom:.375rem;font-weight:700}
+.rbox input{width:100%;text-align:center;font-size:2rem;font-weight:700;
+  border:none;background:none;color:var(--text);outline:none;font-family:inherit}
+.rbox small{font-size:.75rem;color:var(--sub);display:block;margin-top:.25rem}
+
+/* ════ BADGE ════ */
+.badge{display:inline-flex;align-items:center;padding:.3125rem .875rem;
+  border-radius:1.25rem;font-size:.875rem;font-weight:700}
+.bn{background:var(--greenbg);color:var(--green)}
+.be{background:var(--amberbg);color:var(--amber)}
+.bh{background:var(--redbg);color:var(--red)}
+.bl{background:var(--indigobg);color:var(--indigo)}
+
+/* ════ FIELDS ════ */
+.field{margin-bottom:.75rem}
+.field label{font-size:.875rem;color:var(--sub);display:block;margin-bottom:.3125rem;font-weight:600}
+.field input,.field textarea{width:100%;padding:.8125rem .875rem;
+  border:1.5px solid var(--border);border-radius:var(--r2);
+  font-size:1rem;font-family:inherit;background:#fff;color:var(--text);outline:none}
+.field input:focus,.field textarea:focus{border-color:var(--blue)}
+.field textarea{resize:none;height:4.5rem}
+
+/* ════ BUTTONS ════ */
+.btn{width:100%;padding:1rem;border:none;border-radius:var(--r2);
+  font-size:1.125rem;font-weight:700;font-family:inherit;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:.5rem}
+.btn:active{opacity:.82;transform:scale(.98)}
+.btnp{background:var(--blue);color:#fff}
+.btno{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.btn2{display:flex;gap:.625rem;margin-top:.75rem}
+.btn2 .btn{flex:1}
+
+/* ════ STATS ════ */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:.625rem;margin-bottom:.875rem}
+.sbox{background:#F5F5F5;border-radius:var(--r2);padding:.875rem;text-align:center}
+.sval{font-size:1.875rem;font-weight:700;color:var(--text)}
+.slbl{font-size:.75rem;color:var(--sub);margin-top:.25rem}
+
+/* ════ PERIOD TABS ════ */
+.ptabs{display:flex;gap:.375rem;margin-bottom:.875rem}
+.ptab{flex:1;padding:.625rem .25rem;border:1.5px solid var(--border);border-radius:var(--r2);
+  font-size:.875rem;font-weight:600;text-align:center;cursor:pointer;
+  background:#fff;color:var(--sub);font-family:inherit}
+.ptab.on{background:var(--bluebg);color:var(--blue);border-color:var(--blue)}
+
+/* ════ CHART ════ */
+.cwrap{position:relative;width:100%;height:12rem}
+.lgd{display:flex;gap:.875rem;margin-bottom:.5rem;font-size:.75rem;color:var(--sub)}
+.lgd span{display:flex;align-items:center;gap:.3rem}
+.lgd i{width:1.25rem;height:.25rem;border-radius:.125rem;display:inline-block}
+
+/* ════ HISTORY ════ */
+.hitem{background:#fff;border-radius:var(--r2);padding:.875rem;margin-bottom:.625rem;
+  box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.htop{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem}
+.hdate{font-size:.75rem;color:var(--sub);margin-bottom:.25rem}
+.hval{font-size:1.25rem;font-weight:700}
+.hpls{font-size:.875rem;color:var(--sub);margin-left:.375rem;font-weight:500}
+.hnote{font-size:.875rem;color:var(--sub);margin-top:.375rem;font-style:italic}
+.hacts{display:flex;gap:.5rem;margin-top:.625rem}
+.ibtn{border:1.5px solid var(--border);border-radius:.5rem;background:none;cursor:pointer;
+  font-size:.875rem;color:var(--sub);font-family:inherit;
+  display:flex;align-items:center;gap:.25rem;padding:.4375rem .75rem}
+.ibtn.del{color:var(--red);border-color:#EF9A9A}
+.ibtn svg{width:.875rem;height:.875rem;stroke-width:2}
+
+/* ════ PAGINATION ════ */
+.pager{display:flex;align-items:center;justify-content:center;gap:.5rem;
+  margin-top:1rem;flex-wrap:wrap}
+.pager-btn{padding:.5rem .875rem;border:1.5px solid var(--border);border-radius:.5rem;
+  background:#fff;font-size:.875rem;font-weight:600;cursor:pointer;
+  color:var(--sub);font-family:inherit;min-width:2.5rem;text-align:center}
+.pager-btn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.pager-btn:disabled{opacity:.4;cursor:default}
+.pager-info{font-size:.875rem;color:var(--sub);text-align:center;margin-top:.5rem}
+
+/* ════ CONN STATUS ════ */
+.cbox{display:flex;align-items:center;gap:.5rem;padding:.75rem .875rem;
+  border-radius:var(--r2);margin-bottom:.875rem;font-size:1rem;font-weight:600}
+.cok{background:var(--greenbg);color:var(--green)}
+.cerr{background:var(--redbg);color:var(--red)}
+.cno{background:#F5F5F5;color:var(--sub)}
+
+/* ════ REF TABLE ════ */
+.rtbl{width:100%;border-collapse:collapse;font-size:.875rem}
+.rtbl th{background:#F5F5F5;color:var(--sub);font-weight:700;
+  padding:.5rem .625rem;text-align:left;font-size:.75rem}
+.rtbl td{padding:.5625rem .625rem;border-bottom:1px solid var(--border)}
+
+/* ════ AI BAR ════ */
+.aibar{display:none;background:var(--bluebg);border:1.5px solid var(--bluebdr);
+  border-radius:var(--r2);padding:.75rem 1rem;margin-bottom:.75rem;
+  font-size:1rem;color:var(--blue);align-items:center;gap:.625rem;font-weight:600}
+.aibar.on{display:flex}
+
+/* ════ SPINNER ════ */
+.spin{display:inline-block;border:3px solid currentColor;border-top-color:transparent;
+  border-radius:50%;animation:rot .7s linear infinite;vertical-align:middle;flex-shrink:0}
+.spin-sm{width:1.125rem;height:1.125rem;border-width:2px}
+.spin-lg{width:1.875rem;height:1.875rem;color:var(--blue);display:block;margin:.625rem auto}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ════ LOADING/EMPTY ════ */
+.loading,.empty{text-align:center;padding:2rem 1rem;color:var(--sub);font-size:1rem}
+
+/* ════ TOAST ════ */
+.toast{position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%);
+  background:#212121;color:#fff;padding:.75rem 1.375rem;border-radius:1.75rem;
+  font-size:.875rem;font-weight:500;z-index:9999;opacity:0;transition:opacity .3s;
+  pointer-events:none;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+.toast.on{opacity:1}
+
+/* ════ PDF MODAL ════ */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:200;align-items:flex-end;justify-content:center}
+.modal-bg.on{display:flex}
+.modal-box{background:#fff;border-radius:1rem 1rem 0 0;padding:1.25rem;
+  width:100%;max-width:600px}
+.modal-title{font-size:1rem;font-weight:700;margin-bottom:1rem}
+
+/* ════ RESPONSIVE ════ */
+@media(max-width:380px){html{font-size:14px}}
+@media(min-width:480px){html{font-size:17px}}
+@media(min-width:600px){html{font-size:18px}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="hdr">
+    <h1>🩺 Blood Pressure Tracker</h1>
+    <p id="hdrSub">กำลังเชื่อมต่อ...</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="goTab('rec',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>บันทึก
+    </button>
+    <button class="tab" onclick="goTab('dash',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard
+    </button>
+    <button class="tab" onclick="goTab('hist',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>ประวัติ
+    </button>
+    <button class="tab" onclick="goTab('cfg',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>ตั้งค่า
+    </button>
+  </div>
+
+  <!-- RECORD -->
+  <div class="pane on" id="p-rec">
+    <div class="aibar" id="aibar"><span class="spin spin-sm"></span><span id="aimsg">AI กำลังอ่านค่า...</span></div>
+    <div class="card">
+      <div class="ctitle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        อัปโหลดภาพจากเครื่องวัด
+      </div>
+      <div class="upzone" onclick="document.getElementById('fIn').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="ut">แตะเพื่อเลือก / ถ่ายภาพ</div>
+        <div class="us">AI จะอ่านค่า SYS / DIA / PULSE อัตโนมัติ</div>
+      </div>
+      <input type="file" id="fIn" accept="image/*" capture="environment" style="display:none" onchange="onUpload(event)">
+    </div>
+    <div class="card" id="aiCard" style="display:none">
+      <img id="prevImg" style="width:100%;border-radius:.625rem;max-height:11rem;object-fit:cover;display:block;margin-bottom:.875rem" alt="">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem">
+        <div class="ctitle" style="margin:0">ค่าที่อ่านได้</div>
+        <span id="aiBadge" class="badge"></span>
+      </div>
+      <div class="rrow">
+        <div class="rbox" style="border-color:#EF9A9A"><span class="rlbl">SYS (ตัวบน)</span><input type="number" id="aSys" oninput="liveBadge('a')" inputmode="numeric" placeholder="—"><small>mmHg</small></div>
+        <div class="rbox" style="border-color:#90CAF9"><span class="rlbl">DIA (ตัวล่าง)</span><input type="number" id="aDia" oninput="liveBadge('a')" inputmode="numeric" placeholder="—"><small>mmHg</small></div>
+        <div class="rbox" style="border-color:#A5D6A7"><span class="rlbl">PULSE</span><input type="number" id="aPls" inputmode="numeric" placeholder="—"><small>/นาที</small></div>
+      </div>
+      <div class="field"><label>วันที่และเวลาวัด</label><input type="datetime-local" id="aTime"></div>
+      <div class="field"><label>หมายเหตุ</label><textarea id="aNote" placeholder="เช่น วัดหลังตื่นนอน..."></textarea></div>
+      <button class="btn btnp" onclick="saveAI()">💾 บันทึกลง Google Sheets</button>
+    </div>
+    <div class="card">
+      <div class="ctitle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        กรอกข้อมูลด้วยตนเอง
+      </div>
+      <div class="rrow">
+        <div class="rbox" style="border-color:#EF9A9A"><span class="rlbl">SYS</span><input type="number" id="mSys" placeholder="120" oninput="liveBadge('m')" inputmode="numeric"><small>mmHg</small></div>
+        <div class="rbox" style="border-color:#90CAF9"><span class="rlbl">DIA</span><input type="number" id="mDia" placeholder="80" oninput="liveBadge('m')" inputmode="numeric"><small>mmHg</small></div>
+        <div class="rbox" style="border-color:#A5D6A7"><span class="rlbl">PULSE</span><input type="number" id="mPls" placeholder="72" inputmode="numeric"><small>/นาที</small></div>
+      </div>
+      <div style="min-height:2rem;margin-bottom:.625rem"><span id="mBadge" class="badge" style="display:none"></span></div>
+      <div class="field"><label>วันที่และเวลา</label><input type="datetime-local" id="mTime"></div>
+      <div class="field"><label>หมายเหตุ</label><textarea id="mNote" placeholder="หมายเหตุ..."></textarea></div>
+      <button class="btn btnp" onclick="saveManual()">💾 บันทึก</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="pane" id="p-dash">
+    <div class="ptabs">
+      <button class="ptab on" onclick="setPd('day',this)">วันนี้</button>
+      <button class="ptab" onclick="setPd('week',this)">สัปดาห์</button>
+      <button class="ptab" onclick="setPd('month',this)">เดือนนี้</button>
+      <button class="ptab" onclick="setPd('year',this)">ปีนี้</button>
+    </div>
+    <div id="dashOut"><div class="loading"><div class="spin spin-lg"></div>กำลังโหลด...</div></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="pane" id="p-hist">
+    <div class="card" style="padding:.875rem;margin-bottom:.75rem">
+      <div style="display:flex;gap:.375rem;margin-bottom:.75rem">
+        <button class="ptab on" id="hm-month" onclick="setHistMode('month',this)" style="flex:1">รายเดือน</button>
+        <button class="ptab" id="hm-year" onclick="setHistMode('year',this)" style="flex:1">รายปี</button>
+        <button class="ptab" id="hm-all" onclick="setHistMode('all',this)" style="flex:1">ทั้งหมด</button>
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <input type="month" id="fMonth" style="flex:1;padding:.75rem .875rem;border:1.5px solid var(--border);border-radius:var(--r2);font-size:1rem;font-family:inherit;background:#fff" onchange="loadHist()">
+        <select id="fYear" style="display:none;flex:1;padding:.75rem .875rem;border:1.5px solid var(--border);border-radius:var(--r2);font-size:1rem;font-family:inherit;background:#fff" onchange="loadHist()"></select>
+        <button class="btn btno" style="width:auto;padding:.75rem 1rem;font-size:.875rem;white-space:nowrap;flex-shrink:0" onclick="showPDFModal()">📄 PDF</button>
+      </div>
+    </div>
+    <div id="histOut"><div class="loading"><div class="spin spin-lg"></div>กำลังโหลด...</div></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="pane" id="p-cfg">
+    <div class="card">
+      <div class="ctitle">สถานะการเชื่อมต่อ</div>
+      <div id="connBox" class="cbox cno">⬤ กำลังตรวจสอบ...</div>
+      <div class="btn2">
+        <button class="btn btno" onclick="testConn()">🔄 ทดสอบ</button>
+        <button class="btn btno" onclick="showPDFModal()">📄 ออก PDF</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">มาตรฐาน AHA/ACC 2017</div>
+      <table class="rtbl">
+        <thead><tr><th>สถานะ</th><th>SYS</th><th>DIA</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge bl">ต่ำ</span></td><td>&lt;90</td><td>&lt;60</td></tr>
+          <tr><td><span class="badge bn">ปกติ</span></td><td>90–119</td><td>60–79</td></tr>
+          <tr><td><span class="badge be">สูงขอบเขต</span></td><td>120–129</td><td>&lt;80</td></tr>
+          <tr><td><span class="badge bh">สูง ระดับ 1</span></td><td>130–139</td><td>80–89</td></tr>
+          <tr><td><span class="badge bh">สูง ระดับ 2</span></td><td>≥140</td><td>≥90</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- PDF Modal -->
+<div class="modal-bg" id="pdfModal">
+  <div class="modal-box">
+    <div class="modal-title">📄 ออก PDF Report</div>
+    <div style="display:flex;gap:.375rem;margin-bottom:.875rem">
+      <button class="ptab on" id="pm-month" onclick="setPDFMode('month',this)" style="flex:1">รายเดือน</button>
+      <button class="ptab" id="pm-year" onclick="setPDFMode('year',this)" style="flex:1">รายปี</button>
+      <button class="ptab" id="pm-all" onclick="setPDFMode('all',this)" style="flex:1">ทั้งหมด</button>
+    </div>
+    <input type="month" id="pdfMonth" style="width:100%;padding:.75rem .875rem;border:1.5px solid var(--border);border-radius:var(--r2);font-size:1rem;font-family:inherit;margin-bottom:.625rem">
+    <select id="pdfYear" style="display:none;width:100%;padding:.75rem .875rem;border:1.5px solid var(--border);border-radius:var(--r2);font-size:1rem;font-family:inherit;margin-bottom:.625rem"></select>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btno" style="flex:1" onclick="closePDFModal()">ยกเลิก</button>
+      <button class="btn btnp" style="flex:2" onclick="doPDF()">📄 สร้าง PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ══ CONFIG — แก้ตรงนี้เท่านั้น ══
+var API_URL = "https://script.google.com/macros/s/AKfycbxzft7zkDYEyvWHjQjLbSSBapFgp7HhjD-s-IOmSs-fjedq9HnAyAJClGlFODc29HnXxw/exec";
+
+// ══ STATE ══
+var period = 'day', tChart, dChart;
+var pendingImg = null;
+var histData = [], histPage = 1, PAGE_SIZE = 25;
+var histMode = 'month', pdfMode = 'month';
+
+// ══ API CALL ผ่าน fetch ══
+function api(action, body) {
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(Object.assign({action: action}, body||{}))
+  }).then(function(r){ return r.json(); });
+}
+
+function apiGet(params) {
+  var qs = Object.keys(params||{}).map(function(k){
+    return k+'='+encodeURIComponent(params[k]);
+  }).join('&');
+  return fetch(API_URL + (qs?'?'+qs:'')).then(function(r){ return r.json(); });
+}
+
+// ══ TABS ══
+function goTab(name, btn) {
+  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('on');});
+  document.getElementById('p-'+name).classList.add('on');
+  btn.classList.add('on');
+  window.scrollTo(0,0);
+  if(name==='dash') renderDash();
+  if(name==='hist') loadHist();
+  if(name==='cfg') checkConn();
+}
+
+// ══ STATUS ══
+function getStatus(sys,dia){
+  sys=+sys;dia=+dia;if(!sys||!dia)return null;
+  if(sys<90||dia<60)return{label:'ต่ำ',cls:'bl'};
+  if(sys>=140||dia>=90)return{label:'สูง ระดับ 2',cls:'bh'};
+  if(sys>=130||dia>=80)return{label:'สูง ระดับ 1',cls:'bh'};
+  if(sys>=120&&dia<80)return{label:'สูงขอบเขต',cls:'be'};
+  return{label:'ปกติ',cls:'bn'};
+}
+function liveBadge(m){
+  var sys=m==='a'?document.getElementById('aSys').value:document.getElementById('mSys').value;
+  var dia=m==='a'?document.getElementById('aDia').value:document.getElementById('mDia').value;
+  var st=getStatus(sys,dia);
+  var el=document.getElementById(m==='a'?'aiBadge':'mBadge');
+  if(st){el.textContent=st.label;el.className='badge '+st.cls;el.style.display='';}
+  else el.style.display='none';
+}
+
+// ══ UPLOAD + AI ══
+function onUpload(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var url=ev.target.result;
+    pendingImg=url.split(',')[1];
+    document.getElementById('prevImg').src=url;
+    document.getElementById('aiCard').style.display='block';
+    setNow('aTime');
+    var bar=document.getElementById('aibar');bar.classList.add('on');
+    api('ai', {imageBase64: pendingImg})
+      .then(function(r){
+        bar.classList.remove('on');
+        if(r&&r.sys){
+          document.getElementById('aSys').value=r.sys;
+          document.getElementById('aDia').value=r.dia;
+          document.getElementById('aPls').value=r.pulse||'';
+          liveBadge('a');toast('✓ AI อ่านค่าสำเร็จ: '+r.sys+'/'+r.dia);
+        } else toast('AI อ่านค่าไม่ได้ — กรอกเองได้เลย');
+      })
+      .catch(function(){bar.classList.remove('on');toast('⚠ AI error');});
+  };
+  reader.readAsDataURL(file);
+}
+
+// ══ SAVE ══
+function saveAI(){
+  var sys=+document.getElementById('aSys').value;
+  var dia=+document.getElementById('aDia').value;
+  if(!sys||!dia){toast('กรุณาระบุค่า SYS และ DIA');return;}
+  doSave({sys:sys,dia:dia,pulse:+document.getElementById('aPls').value||0,
+    time:document.getElementById('aTime').value,note:document.getElementById('aNote').value.trim(),
+    source:'camera',imageBase64:pendingImg||'',imageName:'bp_'+Date.now()+'.jpg'});
+  document.getElementById('aiCard').style.display='none';
+  ['aSys','aDia','aPls','aNote'].forEach(function(id){document.getElementById(id).value='';});
+  pendingImg=null;
+}
+function saveManual(){
+  var sys=+document.getElementById('mSys').value;
+  var dia=+document.getElementById('mDia').value;
+  if(!sys||!dia){toast('กรุณาระบุค่า SYS และ DIA');return;}
+  doSave({sys:sys,dia:dia,pulse:+document.getElementById('mPls').value||0,
+    time:document.getElementById('mTime').value,note:document.getElementById('mNote').value.trim(),source:'manual'});
+  ['mSys','mDia','mPls','mNote'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('mBadge').style.display='none';setNow('mTime');
+}
+function doSave(entry){
+  var st=getStatus(entry.sys,entry.dia);
+  entry.status=st?st.label:'—';entry.id=Date.now();
+  toast('⏳ กำลังบันทึก...');
+  api('save',entry)
+    .then(function(r){toast('✓ บันทึกแล้ว — '+(r&&r.status?r.status:'สำเร็จ'));})
+    .catch(function(){toast('⚠ บันทึกไม่สำเร็จ');});
+}
+
+// ══ DASHBOARD ══
+function setPd(p,btn){
+  period=p;
+  document.querySelectorAll('.ptab').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');renderDash();
+}
+function renderDash(){
+  var out=document.getElementById('dashOut');
+  out.innerHTML='<div class="loading"><div class="spin spin-lg"></div>กำลังดึงข้อมูล...</div>';
+  api('fetch',{})
+    .then(function(r){
+      var all=(r&&r.records)?r.records:[];
+      var now=new Date();
+      var data=all.filter(function(rec){
+        if(!rec.time)return false;
+        var d=new Date(rec.time);
+        if(period==='day')return d.toDateString()===now.toDateString();
+        if(period==='week'){var w=new Date(now);w.setDate(now.getDate()-7);return d>=w;}
+        if(period==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+        if(period==='year')return d.getFullYear()===now.getFullYear();
+        return true;
+      });
+      if(!data.length){
+        out.innerHTML='<div class="empty">📊 ยังไม่มีข้อมูลในช่วงนี้<br><small>ทั้งหมด '+all.length+' รายการ</small></div>';
+        return;
+      }
+      var avg=function(a){return Math.round(a.reduce(function(x,y){return x+y;},0)/a.length);};
+      var sys=data.map(function(d){return d.sys;}),dia=data.map(function(d){return d.dia;});
+      var pls=data.map(function(d){return d.pulse;}).filter(Boolean);
+      var aS=avg(sys),aD=avg(dia);
+      var st=getStatus(aS,aD)||{label:'—',cls:'bn'};
+      var sorted=data.slice().sort(function(a,b){return new Date(a.time)-new Date(b.time);});
+      var SC={'ปกติ':'#2E7D32','สูงขอบเขต':'#E65100','สูง ระดับ 1':'#C62828','สูง ระดับ 2':'#7f0000','ต่ำ':'#283593'};
+      var cnt={};data.forEach(function(d){cnt[d.status]=(cnt[d.status]||0)+1;});
+      var lbs=sorted.map(function(d){
+        if(!d.time)return'';var dt=new Date(d.time);
+        return period==='day'?dt.toLocaleTimeString('th',{hour:'2-digit',minute:'2-digit'}):dt.toLocaleDateString('th',{month:'short',day:'numeric'});
+      });
+      out.innerHTML=
+        '<div class="sgrid">'+
+        '<div class="sbox"><div class="sval" style="color:#C62828">'+aS+'</div><div class="slbl">SYS เฉลี่ย (mmHg)</div></div>'+
+        '<div class="sbox"><div class="sval" style="color:#1565C0">'+aD+'</div><div class="slbl">DIA เฉลี่ย (mmHg)</div></div>'+
+        '<div class="sbox"><div class="sval">'+(pls.length?avg(pls):'—')+'</div><div class="slbl">PULSE เฉลี่ย</div></div>'+
+        '<div class="sbox"><div class="sval">'+data.length+'</div><div class="slbl">จำนวนครั้ง</div></div>'+
+        '</div>'+
+        '<div style="text-align:center;margin-bottom:.875rem"><span style="font-size:.875rem;color:var(--sub)">สถานะโดยรวม: </span><span class="badge '+st.cls+'">'+st.label+'</span></div>'+
+        '<div class="card"><div class="ctitle">แนวโน้มความดัน</div>'+
+        '<div class="lgd"><span><i style="background:#E53935"></i>SYS</span><span><i style="background:#1E88E5"></i>DIA</span></div>'+
+        '<div class="cwrap"><canvas id="tChart"></canvas></div></div>'+
+        '<div class="card"><div class="ctitle">การกระจายสถานะ</div>'+
+        '<div class="cwrap" style="height:10rem"><canvas id="dChart"></canvas></div>'+
+        '<div id="dLgd" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.625rem;font-size:.75rem;color:var(--sub)"></div></div>'+
+        '<div class="card"><div class="ctitle">สรุปแนวโน้ม</div><div id="trendTxt" style="font-size:.9375rem;line-height:2"></div></div>'+
+        '<button class="btn btno" style="margin-top:.25rem" onclick="showPDFModal()">📄 ออก PDF Report</button>';
+      if(tChart)tChart.destroy();
+      tChart=new Chart(document.getElementById('tChart'),{type:'line',
+        data:{labels:lbs,datasets:[
+          {label:'SYS',data:sorted.map(function(d){return d.sys;}),borderColor:'#E53935',backgroundColor:'rgba(229,57,53,.07)',tension:.35,pointRadius:3,fill:true},
+          {label:'DIA',data:sorted.map(function(d){return d.dia;}),borderColor:'#1E88E5',backgroundColor:'rgba(30,136,229,.07)',tension:.35,pointRadius:3,fill:true}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+          scales:{y:{min:40,max:180},x:{grid:{display:false},ticks:{font:{size:11}}}}}});
+      var dk=Object.keys(cnt);
+      if(dChart)dChart.destroy();
+      dChart=new Chart(document.getElementById('dChart'),{type:'doughnut',
+        data:{labels:dk,datasets:[{data:dk.map(function(k){return cnt[k];}),
+          backgroundColor:dk.map(function(k){return SC[k]||'#999';}),borderWidth:3,borderColor:'#fff'}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'60%'}});
+      document.getElementById('dLgd').innerHTML=dk.map(function(k){
+        return'<span style="display:flex;align-items:center;gap:.3rem"><span style="width:.75rem;height:.75rem;border-radius:.1875rem;background:'+(SC[k]||'#999')+'"></span>'+k+' ('+cnt[k]+')</span>';
+      }).join('');
+      var th='ค่าเฉลี่ย <b>SYS '+aS+'</b> / <b>DIA '+aD+'</b> mmHg<br>';
+      th+='SYS: '+Math.min.apply(null,sys)+'–'+Math.max.apply(null,sys)+' | DIA: '+Math.min.apply(null,dia)+'–'+Math.max.apply(null,dia)+' mmHg<br><br>';
+      if(sorted.length>=2){
+        var dS=sorted[sorted.length-1].sys-sorted[0].sys,dD=sorted[sorted.length-1].dia-sorted[0].dia;
+        th+=dS>5?'📈 SYS สูงขึ้น <b>+'+dS+'</b> mmHg':dS<-5?'📉 SYS ลดลง <b>'+Math.abs(dS)+'</b> mmHg':'➡ SYS คงที่';
+        th+='<br>';
+        th+=dD>5?'📈 DIA สูงขึ้น <b>+'+dD+'</b> mmHg':dD<-5?'📉 DIA ลดลง <b>'+Math.abs(dD)+'</b> mmHg':'➡ DIA คงที่';
+      }
+      document.getElementById('trendTxt').innerHTML=th;
+      document.getElementById('hdrSub').textContent='ข้อมูล '+all.length+' รายการ';
+    }).catch(function(){out.innerHTML='<div class="empty">⚠ ดึงข้อมูลไม่ได้</div>';});
+}
+
+// ══ HISTORY ══
+function initYearSelect(id){
+  var sel=document.getElementById(id);if(sel.options.length>1)return;
+  var now=new Date().getFullYear();
+  for(var y=now;y>=now-5;y--){
+    var o=document.createElement('option');o.value=String(y);o.textContent='ปี '+y;
+    if(y===now)o.selected=true;sel.appendChild(o);
+  }
+}
+function setHistMode(mode,btn){
+  histMode=mode;
+  document.querySelectorAll('#hm-month,#hm-year,#hm-all').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById('fMonth').style.display=mode==='month'?'':'none';
+  document.getElementById('fYear').style.display=mode==='year'?'':'none';
+  if(mode==='year')initYearSelect('fYear');
+  loadHist();
+}
+function loadHist(){
+  var out=document.getElementById('histOut');
+  out.innerHTML='<div class="loading"><div class="spin spin-lg"></div>กำลังดึงข้อมูล...</div>';
+  histPage=1;
+  var params={};
+  if(histMode==='month'){var m=document.getElementById('fMonth').value;if(m)params.month=m;}
+  else if(histMode==='year'){initYearSelect('fYear');var y=document.getElementById('fYear').value;if(y)params.year=y;}
+  api('fetch',params)
+    .then(function(r){histData=(r&&r.records)?r.records:[];renderHistPage();})
+    .catch(function(){out.innerHTML='<div class="empty">⚠ ดึงข้อมูลไม่ได้</div>';});
+}
+function renderHistPage(){
+  var out=document.getElementById('histOut');
+  var total=histData.length,pages=Math.ceil(total/PAGE_SIZE);
+  var start=(histPage-1)*PAGE_SIZE,end=Math.min(start+PAGE_SIZE,total);
+  var pageData=histData.slice(start,end);
+  if(!total){out.innerHTML='<div class="empty">ไม่มีข้อมูล</div>';return;}
+  var items=pageData.map(function(r){
+    var st=getStatus(r.sys,r.dia)||{label:'—',cls:'bn'};
+    var d=r.time?new Date(r.time):new Date();
+    return'<div class="hitem"><div class="htop"><div style="flex:1;min-width:0">'+
+      '<div class="hdate">'+d.toLocaleDateString('th',{weekday:'short',month:'short',day:'numeric'})+' '+d.toLocaleTimeString('th',{hour:'2-digit',minute:'2-digit'})+'</div>'+
+      '<div class="hval">'+r.sys+'/'+r.dia+' <small style="font-size:.875rem;font-weight:500;color:var(--sub)">mmHg</small><span class="hpls">'+(r.pulse?'❤ '+r.pulse+'/นาที':'')+'</span></div>'+
+      (r.note?'<div class="hnote">'+r.note+'</div>':'')+
+      '</div><span class="badge '+st.cls+'" style="flex-shrink:0">'+st.label+'</span></div>'+
+      '<div class="hacts">'+
+      (r.imageUrl?'<button class="ibtn" onclick="window.open(''+r.imageUrl+'','_blank')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>ดูภาพ</button>':'')+
+      '<button class="ibtn del" onclick="delEntry(''+r.id+'')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>ลบ</button>'+
+      '</div></div>';
+  }).join('');
+  var pager='';
+  if(pages>1){
+    pager='<div class="pager">';
+    pager+='<button class="pager-btn" onclick="changePage('+(histPage-1)+')" '+(histPage<=1?'disabled':'')+'>‹ ก่อน</button>';
+    var sP=Math.max(1,histPage-2),eP=Math.min(pages,histPage+2);
+    if(sP>1)pager+='<button class="pager-btn" onclick="changePage(1)">1</button>'+(sP>2?'<span class="pager-info">…</span>':'');
+    for(var i=sP;i<=eP;i++)pager+='<button class="pager-btn'+(i===histPage?' on':'')+'" onclick="changePage('+i+')">'+i+'</button>';
+    if(eP<pages)pager+=(eP<pages-1?'<span class="pager-info">…</span>':'')+' <button class="pager-btn" onclick="changePage('+pages+')">'+pages+'</button>';
+    pager+='<button class="pager-btn" onclick="changePage('+(histPage+1)+')" '+(histPage>=pages?'disabled':'')+'>ถัดไป ›</button></div>';
+    pager+='<div class="pager-info">แสดง '+(start+1)+'–'+end+' จาก '+total+' รายการ (หน้า '+histPage+'/'+pages+')</div>';
+  }
+  out.innerHTML=items+pager;
+}
+function changePage(p){
+  var pages=Math.ceil(histData.length/PAGE_SIZE);
+  if(p<1||p>pages)return;
+  histPage=p;renderHistPage();window.scrollTo(0,0);
+}
+function delEntry(id){
+  if(!confirm('ลบรายการนี้?'))return;
+  api('delete',{id:String(id)})
+    .then(function(){
+      toast('ลบแล้ว');
+      histData=histData.filter(function(r){return String(r.id)!==String(id);});
+      var pages=Math.ceil(histData.length/PAGE_SIZE);
+      if(histPage>pages&&pages>0)histPage=pages;
+      renderHistPage();
+    }).catch(function(){toast('⚠ ลบไม่สำเร็จ');});
+}
+
+// ══ PDF MODAL ══
+function showPDFModal(){
+  document.getElementById('pdfModal').classList.add('on');
+  var hm=document.getElementById('fMonth').value;
+  if(hm)document.getElementById('pdfMonth').value=hm;
+  initYearSelect('pdfYear');
+  setPDFMode(histMode,document.getElementById('pm-'+histMode));
+}
+function closePDFModal(){document.getElementById('pdfModal').classList.remove('on');}
+function setPDFMode(mode,btn){
+  pdfMode=mode;
+  document.querySelectorAll('#pm-month,#pm-year,#pm-all').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById('pdfMonth').style.display=mode==='month'?'':'none';
+  document.getElementById('pdfYear').style.display=mode==='year'?'':'none';
+  initYearSelect('pdfYear');
+}
+function doPDF(){
+  closePDFModal();
+  var params={month:'',year:'',email:''};
+  if(pdfMode==='month')params.month=document.getElementById('pdfMonth').value||'';
+  else if(pdfMode==='year')params.year=document.getElementById('pdfYear').value||'';
+  var label=pdfMode==='month'?(params.month||'ทั้งหมด'):pdfMode==='year'?('ปี '+params.year):'ทั้งหมด';
+  toast('⏳ กำลังสร้าง PDF '+label+' (~20 วินาที)');
+  api('pdf',params)
+    .then(function(r){
+      if(r&&r.pdfUrl){toast('✓ PDF พร้อมแล้ว!');setTimeout(function(){window.open(r.pdfUrl,'_blank');},600);}
+      else toast('⚠ '+(r&&r.error?r.error:'สร้าง PDF ไม่สำเร็จ'));
+    }).catch(function(e){toast('⚠ '+e.message);});
+}
+
+// ══ SETTINGS ══
+function checkConn(){
+  var box=document.getElementById('connBox');
+  box.className='cbox cno';box.textContent='⬤ กำลังตรวจสอบ...';
+  api('fetch',{})
+    .then(function(r){
+      box.className='cbox cok';
+      box.textContent='✓ เชื่อมต่อแล้ว — '+(r.total||0)+' รายการ';
+      document.getElementById('hdrSub').textContent='ข้อมูล '+(r.total||0)+' รายการ';
+    }).catch(function(){box.className='cbox cerr';box.textContent='✗ เชื่อมต่อไม่ได้';});
+}
+function testConn(){checkConn();toast('กำลังทดสอบ...');}
+
+// ══ HELPERS ══
+function setNow(id){var n=new Date();n.setMinutes(n.getMinutes()-n.getTimezoneOffset());document.getElementById(id).value=n.toISOString().slice(0,16);}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on');},3500);}
+
+// ══ INIT ══
+(function(){
+  setNow('aTime');setNow('mTime');
+  document.getElementById('fMonth').value=new Date().toISOString().slice(0,7);
+  document.getElementById('pdfMonth').value=new Date().toISOString().slice(0,7);
+  if(!API_URL||API_URL==="YOUR_APPS_SCRIPT_URL_HERE"){
+    document.getElementById('hdrSub').textContent='⚠ กรุณาตั้งค่า API_URL ใน Code.gs';
+    return;
+  }
+  api('fetch',{}).then(function(r){
+    document.getElementById('hdrSub').textContent='เชื่อมต่อแล้ว — '+(r.total||0)+' รายการ';
+  }).catch(function(){
+    document.getElementById('hdrSub').textContent='⚠ เชื่อมต่อไม่ได้';
+  });
+})();
+</script>
+</body>
+</html>
