@@ -347,18 +347,24 @@ var histMode = 'month', pdfMode = 'month';
 
 // ══ API CALL ผ่าน fetch ══
 function api(action, body) {
+  // Apps Script ไม่รองรับ CORS preflight
+  // ใช้ GET สำหรับ fetch, POST สำหรับอื่นๆ ผ่าน no-cors แล้ว fallback
+  if (action === 'fetch') {
+    var params = Object.assign({action: 'fetch'}, body||{});
+    var qs = Object.keys(params).map(function(k){
+      return k + '=' + encodeURIComponent(params[k]||'');
+    }).join('&');
+    return fetch(API_URL + '?' + qs, {
+      method: 'GET',
+      redirect: 'follow'
+    }).then(function(r){ return r.json(); });
+  }
+  // POST actions
   return fetch(API_URL, {
     method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    redirect: 'follow',
     body: JSON.stringify(Object.assign({action: action}, body||{}))
   }).then(function(r){ return r.json(); });
-}
-
-function apiGet(params) {
-  var qs = Object.keys(params||{}).map(function(k){
-    return k+'='+encodeURIComponent(params[k]);
-  }).join('&');
-  return fetch(API_URL + (qs?'?'+qs:'')).then(function(r){ return r.json(); });
 }
 
 // ══ TABS ══
